@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,115 +8,360 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Plataforma de Agendamento',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF176B55),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF5F7F6),
+        fontFamily: 'Roboto',
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const AgendamentoPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class AgendamentoPage extends StatefulWidget {
+  const AgendamentoPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<AgendamentoPage> createState() => _AgendamentoPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _AgendamentoPageState extends State<AgendamentoPage> {
+  bool _altoContraste = false;
+  final _formKey = GlobalKey<FormState>();
+  final _nomeController = TextEditingController();
+  final _telefoneController = TextEditingController();
 
-  void _incrementCounter() {
+  final List<String> _horarios = [
+    '09:00',
+    '10:00',
+    '11:00',
+    '13:00',
+    '14:00',
+    '15:00',
+    '16:00',
+  ];
+
+  String? _horarioSelecionado;
+  final Set<String> _horariosOcupados = {};
+
+  void _confirmarAgendamento() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_horarioSelecionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecione um horário disponível.'),
+        ),
+      );
+      return;
+    }
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _horariosOcupados.add(_horarioSelecionado!);
+    });
+
+    final nome = _nomeController.text.trim();
+    final horario = _horarioSelecionado!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(
+          Icons.check_circle,
+          color: Color(0xFF176B55),
+          size: 48,
+        ),
+        title: const Text('Agendamento confirmado!'),
+        content: Text(
+          '$nome, seu horário foi reservado para as $horario.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendi'),
+          ),
+        ],
+      ),
+    );
+
+    _formKey.currentState!.reset();
+    _nomeController.clear();
+    _telefoneController.clear();
+
+    setState(() {
+      _horarioSelecionado = null;
     });
   }
 
   @override
+  void dispose() {
+    _nomeController.dispose();
+    _telefoneController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
+      backgroundColor: _altoContraste
+    ? Colors.black
+    : const Color(0xFFF5F7F6),
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
+        backgroundColor: _altoContraste
+            ? Colors.black
+            : const Color(0xFF176B55),
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: _altoContraste
+                ? 'Desativar alto contraste'
+                : 'Ativar alto contraste',
+            onPressed: () {
+              setState(() {
+                _altoContraste = !_altoContraste;
+              });
+            },
+            icon: const Icon(Icons.contrast),
+          ),
+        ],
+        title: const Row(
           children: [
-            const Text('You have pushed the button this many times:'),
+            Icon(Icons.content_cut, size: 23),
+            SizedBox(width: 10),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'AGENDAMENTO ONLINE',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                    'Barbearia',
+                    style: TextStyle(
+                      color: _altoContraste
+                          ? Colors.yellow
+                          : const Color(0xFF176B55),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Text(
+                      'Agende seu horário',
+                      style: TextStyle(
+                        fontSize: 29,
+                        fontWeight: FontWeight.bold,
+                        color: _altoContraste
+                            ? Colors.white
+                            : const Color(0xFF202B27),
+                      ),
+                    ),
+                const SizedBox(height: 8),
+                Text(
+                  'Preencha seus dados e escolha um horário disponível.',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: _altoContraste
+                        ? Colors.white
+                        : const Color(0xFF52615B),
+                  ),
+                ),
+                const SizedBox(height: 26),
+
+                Card(
+                  elevation: 0,
+                  color: _altoContraste
+                  ? const Color(0xFF1A1A1A)
+                  : Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                          color: _altoContraste ? Colors.white : const Color(0xFFE1E8E4),
+                          width: _altoContraste ? 2 : 1,
+                        ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(22),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Seus dados',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: _altoContraste ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          TextFormField(
+                            controller: _nomeController,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: const InputDecoration(
+                              labelText: 'Nome completo',
+                              hintText: 'Digite seu nome',
+                              prefixIcon: Icon(Icons.person_outline),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Informe seu nome.';
+                              }
+                              if (value.trim().length < 2) {
+                                return 'Digite pelo menos 2 caracteres.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          TextFormField(
+                            controller: _telefoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: const InputDecoration(
+                              labelText: 'Telefone',
+                              hintText: '(00) 00000-0000',
+                              prefixIcon: Icon(Icons.phone_outlined),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              final numeros = (value ?? '')
+                                  .replaceAll(RegExp(r'\D'), '');
+
+                              if (numeros.isEmpty) {
+                                return 'Informe seu telefone.';
+                              }
+                              if (numeros.length < 10 ||
+                                  numeros.length > 11) {
+                                return 'Informe um telefone válido com DDD.';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 28),
+                          Text(
+                            'Escolha um horário',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: _altoContraste ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Horários disponíveis para atendimento',
+                            style: TextStyle(
+                              color: _altoContraste ? Colors.white : const Color(0xFF52615B),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: _horarios.map((horario) {
+                              final ocupado =
+                                  _horariosOcupados.contains(horario);
+                              final selecionado =
+                                  _horarioSelecionado == horario;
+
+                              return ChoiceChip(
+                                label: Text(horario),
+                                selected: selecionado,
+                                onSelected: ocupado
+                                    ? null
+                                    : (selected) {
+                                        setState(() {
+                                          _horarioSelecionado =
+                                              selected ? horario : null;
+                                        });
+                                      },
+                                selectedColor: _altoContraste
+                                    ? Colors.yellow
+                                    : const Color(0xFF176B55),
+                                backgroundColor: _altoContraste
+                                    ? const Color(0xFF333333)
+                                    : null,
+                                labelStyle: TextStyle(
+                                  color: _altoContraste
+                                      ? (selecionado ? Colors.black : Colors.white)
+                                      : selecionado
+                                          ? Colors.white
+                                          : ocupado
+                                              ? Colors.grey
+                                              : const Color(0xFF26352E),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+
+                          const SizedBox(height: 26),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: FilledButton.icon(
+                              onPressed: _confirmarAgendamento,
+                              icon: const Icon(Icons.calendar_month),
+                              label: const Text(
+                                'Confirmar agendamento',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF176B55),
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+                const Center(
+                  child: Text(
+                    'Plataforma de Agendamento Online',
+                    style: TextStyle(
+                      color: Color(0xFF65736D),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,0 +1,32 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/validacao-agendamento
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Executar testes Flutter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Instalar dependências
+        working-directory: plataforma_agendamento
+        run: flutter pub get
+
+      - name: Executar testes
+        working-directory: plataforma_agendamento
+        run: flutter test
