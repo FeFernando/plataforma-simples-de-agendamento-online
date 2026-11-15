@@ -1,4 +1,3 @@
-
 name: Flutter CI
 
 on:
@@ -25,7 +24,9 @@ jobs:
           channel: stable
 
       - name: Instalar dependências
+        working-directory: plataforma_agendamento
         run: flutter pub get
 
       - name: Executar testes
+        working-directory: plataforma_agendamento
         run: flutter test
